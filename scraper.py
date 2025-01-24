@@ -50,10 +50,16 @@ def analyze_with_claude(text, api_key):
         # Create the message
         message = client.messages.create(
             model="claude-3-5-sonnet-20241022",
+            system="""
+            You are an expert at parsing scrapes HTML content and processing whatever data you are asked to find. You are also an expert at return simple JSON payloads that are ready to database insertion.
+            For every prompt you get, simply parse the given HTML content, look for whatever data you are asked to look for in the prompt, and return a single or list of JSON objects in text, so that I can simply run
+            'data = json.loads(response)'
+            DO NOT OUTPUT ANYTHING ELSE. I ONLY WANT THE JSON TEXT SO THAT I CAN LOAD YOUR RESPONSE DIRECTLY TO JSON
+            """,
             max_tokens=4096,
             messages=[{
                 "role": "user",
-                "content": f"This website contains information about investment rates. I need you to extract the rates options and give them back to me in text I can simply do a json.loads with to store in a database.:\n\n{text}"
+                "content": f"This git repo contains some files. I need you to extract the file information and only return the data in json.loads() ready text.:\n\n{text}"
             }]
         )
         
@@ -66,8 +72,8 @@ def analyze_with_claude(text, api_key):
 def main():
     # Get API key from environment variable
     load_dotenv()
+    api_key = os.getenv('API_KEY')
     
-    api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
         print("Please set your ANTHROPIC_API_KEY environment variable")
         return
